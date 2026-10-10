@@ -1,0 +1,28 @@
+# Blueprint Render : site statique, aucun serveur, aucune base.
+# Tout s'execute dans le navigateur du visiteur.
+services:
+  - type: web
+    name: cockpit-agence
+    runtime: static
+    buildCommand: echo "Aucune compilation"
+    staticPublishPath: ./public
+    pullRequestPreviewsEnabled: false
+    headers:
+      # Ne pas apparaitre dans les moteurs de recherche
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      # Aucune requete reseau sortante autorisee depuis la page
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; frame-ancestors 'none'"
+      # Les fichiers de l'outil changent a chaque version : pas de cache long
+      - path: /*
+        name: Cache-Control
+        value: no-cache

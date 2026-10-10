@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Cockpit agence</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img src="assets/logo.png" alt="ESBI">
+    <div><h1>Cockpit de pilotage d'agence</h1><div class="sub" id="hsub"></div></div>
+  </div>
+  <nav>
+    <button id="nSai" class="on" onclick="go('sai')">Saisir</button>
+    <button id="nCoc" onclick="go('coc')">Cockpit</button>
+    <button id="nRef" onclick="go('ref')">Référentiel</button>
+    <button id="nAid" onclick="go('aid')">Aide</button>
+    <div class="grow"></div>
+    <button class="acces" onclick="changerAcces()" title="Revenir à l'écran d'accueil">Changer d'accès</button>
+    <button id="nMode" class="mode" onclick="basculerMode()">Mode consultation</button>
+  </nav>
+</header>
+
+<div id="profil" class="hide">
+  <div class="modal-in" style="max-width:540px">
+    <div class="modal-hd"><div>
+      <h2>Ouvrir le cockpit</h2>
+      <p class="hint" style="margin:0">Choisir son accès. Cette étape est demandée à chaque ouverture de l'outil.</p>
+      <p class="pver" id="pVer"></p>
+    </div><button id="pAnnul" class="hide" onclick="fermerAccueil()">Retour</button></div>
+    <div class="modal-bd">
+      <div class="seg">
+        <button id="aOngC" type="button" class="on" onclick="accueilOnglet('c')">Je renseigne mes indicateurs</button>
+        <button id="aOngR" type="button" onclick="accueilOnglet('r')">Responsable d'agence</button>
+      </div>
+      <form id="fC" onsubmit="event.preventDefault();validerProfil()" novalidate>
+        <div class="f" style="margin-bottom:14px"><label>Agence</label><select id="pAg" style="width:100%"></select></div>
+        <div class="f" style="margin-bottom:14px"><label>Votre poste</label><select id="pDo" style="width:100%"></select></div>
+        <div class="f" style="margin-bottom:14px"><label>Votre nom</label>
+          <select id="pNomSel" class="hide" style="width:100%"></select>
+          <input id="pNom" type="text" style="width:100%" placeholder="Prénom Nom" autocomplete="name"></div>
+        <div id="pErr" class="msg e hide" style="margin-bottom:14px"></div>
+        <div class="msg i" style="margin-bottom:16px">Vous ne verrez que les indicateurs de votre poste, tous domaines confondus. C'est volontaire : personne ne renseigne des chiffres dont il n'a pas la connaissance.</div>
+        <button class="pri" type="submit" style="width:100%">Continuer</button>
+      </form>
+      <form id="fR" class="hide" onsubmit="event.preventDefault();validerCode()" novalidate>
+        <div class="f" style="margin-bottom:14px"><label>Code d'accès responsable</label>
+          <input id="pCode" type="password" style="width:100%" placeholder="XXXX-XXXX" autocomplete="off" spellcheck="false"></div>
+        <div id="rErr" class="msg e hide" style="margin-bottom:14px"></div>
+        <div class="msg i" style="margin-bottom:16px">Le code est remis par le responsable de l'outil. Il ouvre tous les domaines, toutes les agences et le référentiel. Les tirets et les majuscules sont facultatifs.</div>
+        <button class="pri" type="submit" style="width:100%">Ouvrir en mode responsable</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ================= SAISIE ================= -->
+<section id="vSai" class="fin">
+  <div class="card tight noprint">
+    <div class="bar">
+      <div class="f"><label>Agence</label><select id="sAg"></select></div>
+      <div class="f" id="sDoWrap"><label>Poste</label><select id="sDo"></select></div>
+      <div class="f"><label>Cadence</label><select id="sCa">
+        <option value="Mensuel">Mensuel</option><option value="Hebdo">Hebdomadaire</option></select></div>
+      <div class="f"><label id="sPeLab">Période</label>
+        <div class="perio"><input id="sPe" type="month"><button onclick="periodeAujourdhui()" title="Revenir à la période en cours">Aujourd'hui</button></div>
+        <div class="perio-lib" id="sPeLib"></div></div>
+      <div class="f"><label>Rempli par</label>
+        <select id="sRpSel" class="hide"></select>
+        <input id="sRp" type="text" placeholder="Nom du responsable"></div>
+    </div>
+  </div>
+  <div id="sMsg"></div>
+  <div class="card">
+    <h2 id="sTitre"></h2>
+    <p class="hint" id="sHint"></p>
+    <div id="sTable"></div>
+  </div>
+  <div class="card" id="sAutoWrap">
+    <h2>Alimenté par d'autres systèmes</h2>
+    <p class="hint">Ces indicateurs ne se saisissent pas. Ils restent affichés tant que l'accès à leur source n'est pas obtenu.</p>
+    <div id="sAuto"></div>
+  </div>
+  <div class="card">
+    <h2>Faits marquants</h2>
+    <p class="hint">Facultatif. Ce qui explique les écarts, ou ce qui mérite d'être signalé sans être un indicateur.</p>
+    <textarea id="sFaits" placeholder="Quelques lignes suffisent."></textarea>
+  </div>
+  <div class="card tight noprint">
+    <div class="bar">
+      <span class="mini" id="sEtat"></span>
+      <div class="grow"></div>
+      <button onclick="viderSaisie()">Vider</button>
+      <button class="pri" onclick="exporterSaisie()">Enregistrer ma saisie</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COCKPIT ================= -->
+<section id="vCoc" class="hide fin">
+  <div class="card noprint" id="cLoad">
+    <h2>Charger les saisies</h2>
+    <p class="hint">Déposer les fichiers de saisie produits par les responsables. Les anciens classeurs Excel sont également acceptés. Aucune donnée ne quitte ce poste.</p>
+    <div id="drop"><b>Glisser les fichiers ici</b>
+      <span>fichiers .json de saisie ou classeurs .xlsx, plusieurs périodes acceptées</span></div>
+    <input type="file" id="cPick" multiple accept=".json,.xlsx" class="hide">
+    <div class="mini" id="cList" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card tight noprint hide" id="cFilt">
+    <div class="bar">
+      <div class="f"><label>Agence</label><select id="cAg"></select></div>
+      <div class="f"><label>Cadence</label><select id="cCa"></select></div>
+      <div class="f"><label>Période</label>
+        <div class="perio"><button id="cPrev" onclick="glisser(1)" title="Période précédente">‹</button>
+        <select id="cPe"></select>
+        <button id="cNext" onclick="glisser(-1)" title="Période suivante">›</button></div></div>
+      <span class="mini" id="cMini"></span>
+      <div class="grow"></div>
+      <button onclick="$('cPick').click()">Ajouter</button>
+      <button onclick="window.print()">Imprimer</button>
+      <button onclick="exporterCockpit()">Exporter</button>
+      <button class="pri" onclick="reinit()">Recharger</button>
+    </div>
+  </div>
+
+  <div id="cMsg"></div>
+
+  <div id="cHome" class="hide">
+    <div class="hide" id="cKpis"></div>
+    <div class="hero" id="cHero"></div>
+    <div class="card">
+      <h2>Historique par domaine</h2>
+      <p class="hint">Une case par domaine et par période. Rouge dès qu'un indicateur est hors cible. Cliquer une case pour ouvrir le détail de ce domaine à cette période.</p>
+      <div class="hm-wrap"><div class="hm" id="cCarte"></div></div>
+      <div class="leg" style="margin-top:10px">
+        <span><s style="background:var(--ok)"></s>✓ tout conforme</span>
+        <span><s style="background:var(--lim)"></s>! au moins une limite</span>
+        <span><s style="background:var(--rou)"></s>✕ au moins un hors cible</span>
+        <span><s style="background:repeating-linear-gradient(45deg,#C9D2D7,#C9D2D7 3px,#EEF1F3 3px,#EEF1F3 6px)"></s>· suivi sans cible</span>
+        <span><s style="background:var(--nd)"></s>? rien de renseigné</span>
+        <span><s style="border:1.5px dashed #C3CCD1;background:none"></s>aucun fichier</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Alertes</h2>
+        <p class="hint">Classées par gravité. Cliquer une alerte pour ouvrir l'indicateur ou le domaine.</p>
+        <div class="al" id="cAlertes"></div>
+      </div>
+      <div class="col">
+        <div class="card" id="cAgWrap">
+          <h2>Comparaison des agences</h2>
+          <p class="hint" id="cAgSous"></p>
+          <div class="lg2"><span><i style="background:var(--bd)"></i>Conformité</span><span><i style="background:var(--ac)"></i>Remplissage</span></div>
+          <div class="ags" id="cAgs"></div>
+        </div>
+        <div class="card">
+          <h2>Mouvements depuis la période précédente</h2>
+          <p class="hint" id="cMouvSous">Indicateurs dont le statut a changé.</p>
+          <div id="cMouv"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Par domaine</h2>
+      <p class="hint">Cliquer sur un domaine pour en voir le détail.</p>
+      <div class="doms" id="cDoms"></div>
+      <div class="leg">
+        <span><s style="background:var(--ok)"></s>Conforme</span>
+        <span><s style="background:var(--lim)"></s>Limite</span>
+        <span><s style="background:var(--rou)"></s>Hors cible</span>
+        <span><s style="background:repeating-linear-gradient(45deg,var(--nd),var(--nd) 3px,#fff 3px,#fff 6px)"></s>Sans cible</span>
+        <span><s style="background:var(--nd)"></s>Non renseigné</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Ce qui remonte</h2>
+      <p class="hint">Points signalés par les responsables, et écarts installés depuis trois périodes. La revue commence ici.</p>
+      <div id="cEsc"></div>
+    </div>
+    <div class="card" id="cFaitsWrap">
+      <h2>Faits marquants de la période</h2>
+      <div id="cFaits"></div>
+    </div>
+  </div>
+
+  <div id="cDet" class="hide">
+    <button class="back noprint" onclick="versAccueil()">← Retour à l'accueil</button>
+    <div class="card">
+      <h2 id="dTitre"></h2>
+      <p class="hint" id="dSous"></p>
+      <div id="dTable"></div>
+    </div>
+    <div class="card hide" id="dAutoWrap">
+      <h2>Alimenté par d'autres systèmes</h2>
+      <p class="hint">Accès à obtenir. Ces lignes restent visibles tant que la source n'est pas branchée.</p>
+      <div id="dAuto"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RÉFÉRENTIEL ================= -->
+<section id="vRef" class="hide fin">
+  <div class="card">
+    <h2>Référentiel des indicateurs</h2>
+    <p class="hint">Source unique du dispositif. Les écrans de saisie et le cockpit se construisent à partir de ce tableau : modifier une cible ici suffit, aucun autre fichier n'est à reprendre.</p>
+    <div class="msg i"><b>Les saisies déjà enregistrées ne sont pas recalculées.</b> Chaque saisie conserve la cible qui s'appliquait au moment où elle a été faite. C'est ce qui garde l'historique comparable quand une cible évolue.</div>
+    <div id="rVerrou"></div>
+    <div class="bar noprint" style="margin-bottom:14px" id="rBar">
+      <div class="f"><label>Domaine</label><select id="rDo"></select></div>
+      <div class="grow"></div>
+      <button onclick="$('rPick').click()">Importer</button>
+      <button class="pri" onclick="exporterRef()">Exporter</button>
+      <input type="file" id="rPick" accept=".json" class="hide">
+    </div>
+    <div id="rTable"></div>
+  </div>
+  <div class="card" id="rAgWrap">
+    <h2>Agences</h2>
+    <p class="hint">Une ligne par agence. Le nom saisi ici alimente les menus de saisie et de cockpit.</p>
+    <div id="rAg"></div>
+    <h3>Responsable de l'outil</h3>
+    <p class="hint">Nom et moyen de contact affichés en pied de page, pour que chacun sache à qui s'adresser.</p>
+    <input type="text" id="rContact" style="width:420px" placeholder="Prénom Nom, poste ou adresse"
+           oninput="majContact(this.value)">
+    <h3>Contributeurs par domaine</h3>
+    <p class="hint">Un domaine rempli par plusieurs personnes, comme l'exploitation, propose une liste fermée au lieu d'un champ libre. Une personne par ligne. Laisser vide pour garder la saisie libre.</p>
+    <div class="bar" style="margin-bottom:10px">
+      <div class="f"><label>Poste</label><select id="rContribDo"></select></div>
+    </div>
+    <textarea id="rContribs" style="min-height:118px" placeholder="Un nom par ligne"></textarea>
+    <h3>Profil de ce poste</h3>
+    <p class="hint">Domaine sur lequel cet outil est verrouillé. Le contributeur ne peut ni le changer ni voir les autres domaines.</p>
+    <div class="bar" style="margin-bottom:6px">
+      <div class="f"><label>Poste verrouillé</label><select id="rProfilDo"></select></div>
+      <div class="f"><label>Agence</label><select id="rProfilAg"></select></div>
+      <div class="f"><label>Nom du contributeur</label><input id="rProfilNom" type="text" style="width:220px"></div>
+    </div>
+    <button onclick="reinitProfil()" class="noprint">Effacer le profil de ce poste</button>
+    <h3>Code responsable</h3>
+    <p class="hint">Un code unique, remis aux responsables d'agence. Il n'est jamais stocké en clair : l'outil n'en garde qu'une empreinte. Après un changement, exporter le référentiel et le transmettre, sinon les autres postes gardent l'ancien code. Cinq essais erronés bloquent la saisie du code pendant une minute.</p>
+    <button onclick="changerCode()" class="noprint">Changer le code</button>
+  </div>
+</section>
+
+<!-- ================= AIDE ================= -->
+<section id="vAid" class="hide fin aide">
+  <div class="card">
+    <h2>À quoi sert cet outil</h2>
+    <p class="hint">Trois écrans, deux rôles, aucun serveur.</p>
+    <p style="font-size:13.5px;margin:0 0 12px">Chaque responsable de domaine saisit ses indicateurs de la période et enregistre un fichier. Le pilote rassemble ces fichiers et ouvre le cockpit, qui donne la santé de l'agence et le détail au clic. Le référentiel décrit les indicateurs et leurs cibles : c'est lui qui construit les écrans de saisie.</p>
+    <h3>Saisir ses indicateurs</h3>
+    <ol>
+      <li>Choisir son agence, son poste, la cadence et la période. Seuls les indicateurs de la cadence choisie s'affichent.</li>
+      <li>Remplir la colonne « Ma valeur ». Le statut se calcule seul.</li>
+      <li>Commenter chaque indicateur hors cible. Cocher « Remonter » si le point dépasse le niveau de l'équipe.</li>
+      <li>Si un chiffre n'est pas disponible, laisser la case vide. Ne jamais estimer : une case vide se voit, un chiffre inventé ne se voit pas.</li>
+      <li>Cliquer sur « Enregistrer ma saisie ». Le fichier se nomme tout seul. Le transmettre au pilote.</li>
+    </ol>
+    <h3>Consulter le cockpit</h3>
+    <ol>
+      <li>Onglet Cockpit, glisser tous les fichiers de saisie reçus. Les classeurs Excel de l'ancienne version sont également acceptés.</li>
+      <li>Choisir l'agence, la cadence et la période.</li>
+      <li>Cliquer sur un domaine pour en voir le détail, l'écart avec la période précédente et la tendance.</li>
+      <li>Cliquer sur un indicateur ou sur sa courbe pour afficher son évolution en grand, avec la cible et les commentaires de chaque période. La carte « Indicateurs conformes » donne l'évolution du taux de conformité, la carte « Taux de remplissage » celle du remplissage.</li>
+    </ol>
+    <h3>Les deux modes</h3>
+    <p style="font-size:13.5px;margin:0 0 12px"><b>Contributeur.</b> Choisi à l'ouverture, avec son agence, son domaine et son nom, tous obligatoires. Le contributeur ne voit et ne renseigne que son domaine. Le référentiel est consultable sans modification possible.<br>
+    <b>Responsable d'agence.</b> Ouvert par code à l'ouverture, ou par le bouton en haut à droite. Donne accès à tous les domaines et permet de modifier les cibles, les noms d'agence, les contributeurs et le code.</p>
+    <div class="msg w"><b>Ce verrou empêche une modification par inadvertance, pas une modification volontaire.</b> Un fichier ouvert sur un poste reste modifiable par qui sait le faire. Une protection réelle suppose un hébergement avec gestion des droits.</div>
+    <h3>Comment le statut est calculé</h3>
+    <p style="font-size:13.5px;margin:0 0 10px">La règle dépend du type de l'indicateur, indiqué dans le référentiel. Elle est identique à la saisie et au cockpit.</p>
+    <div id="aRegles"></div>
+    <h3>Les contrôles automatiques</h3>
+    <p style="font-size:13.5px;margin:0 0 12px">Le cockpit ne reprend jamais le statut inscrit dans un fichier de saisie : il le recalcule avec la cible du référentiel. Quatre écarts sont signalés au chargement, avec le nom du fichier concerné : un code absent du référentiel, une cible qui diffère de celle du référentiel, un statut recalculé différent de celui déclaré, et des valeurs modifiées après l'enregistrement. Un lien « Voir le détail » ouvre la liste complète.</p>
+    <h3>Ce que l'outil ne fait pas</h3>
+    <p style="font-size:13.5px;margin:0 0 12px">Il ne centralise rien : chacun transmet son fichier. Il ne relance personne. Il ne conserve aucun historique en dehors des fichiers eux-mêmes. Ces limites sont assumées : cet outil sert à faire fonctionner le dispositif et à le démontrer, pas à l'héberger durablement.</p>
+  </div>
+  <div class="card">
+    <h2>Journal des versions</h2>
+    <div id="aJournal"></div>
+  </div>
+</section>
+
+</div>
+
+<div id="modal" class="hide" onclick="if(event.target===this)fermerModal()">
+  <div class="modal-in">
+    <div class="modal-hd">
+      <div><h2 id="mTitre"></h2><p class="hint" id="mSous" style="margin:0"></p></div>
+      <button onclick="fermerModal()">Fermer</button>
+    </div>
+    <div class="modal-bd" id="mCorps"></div>
+  </div>
+</div>
+
+<div class="wrap"><p class="pied" id="pied"></p></div>
+
+<script src="js/vendor/xlsx.full.min.js" defer></script>
+<script src="js/referentiel.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>

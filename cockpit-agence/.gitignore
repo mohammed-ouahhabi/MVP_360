@@ -1,0 +1,6 @@
+.DS_Store
+Thumbs.db
+*.log
+# Saisies de test : ne jamais les versionner
+*.json
+!public/**/*.json
